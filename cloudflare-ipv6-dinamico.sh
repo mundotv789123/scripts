@@ -13,7 +13,7 @@ ip=$(curl -s http://ipv6.icanhazip.com) #pegar ipv6 externamente
 #ip=$(ifconfig eth0 | grep "<global>" | cut -d " " -f 10 | head -1) #pegar ipv6 pelo driver de rede
 idf="./domains-ids.txt"
 ipf="./ip-atual.txt"
-logf="./logs/ip.log"
+logf="./ip.log"
 
 #verificar_ip
 if [ -f $ipf ]; then
