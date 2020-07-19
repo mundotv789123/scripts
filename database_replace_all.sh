@@ -31,5 +31,5 @@ if [[ $1 && $2 && $3 && $4 && $5 && $6 && $7 && $8 ]]; then
 	IFS="$OIFS"
 	echo ""
 else
-	echo "usage: sh replaceAll.sh oldIP newIP oldDB newDB oldUSER newUSER oldPASS newPASS"
+	echo "usage: ./database_replace_all.sh oldIP newIP oldDB newDB oldUSER newUSER oldPASS newPASS"
 fi
