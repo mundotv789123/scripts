@@ -8,7 +8,7 @@ import os
 
 def send_notification(message):
   try:
-    payload = {'content': message, 'username': 'System Manager (ALERT)', 'avatar': 'https://cdn.discordapp.com/attachments/528698938530856961/829879589622120480/alerta.png'}
+    payload = {'content': message, 'username': 'System Manager (ALERT)', 'avatar_url': 'https://cdn.discordapp.com/attachments/528698938530856961/829879589622120480/alerta.png'}
     x = requests.post(discord_url_webhook, data=payload, timeout=20)
     if (x.status_code != 200 and x.status_code !=204):
       print('Error status code: {0}'.format(x.status_code))
