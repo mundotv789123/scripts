@@ -1,11 +1,26 @@
 # -*- coding: utf-8 -*-
-# Sistema de alerta para gerenciamento de nodes
-# Aqui você pode configurar um script que fique rodando em um crontab e alerta quando algum recursos é usado mais do que o necessário
+# sistema de alerta para gerenciamento de nodes
+# aqui você pode configurar um script que fique rodando em um crontab e alerta quando algum recursos é usado mais do que o necessário
+
+#=====================================================
+name='' #caso você use o script em mais de um servidor defina um nome para melhor organização
+discord_url_webhook='' #insira a url do webhook do discord aqui
+
+hdd_porcent_alert = 85
+ram_porcent_alert = 90
+load_alert = 20
+
+#lista de hds para monitorar
+hds = {
+  'Principal': '/'
+}
+#=====================================================
 
 import requests
 import psutil
 import os
 
+#funções
 def send_notification(message):
   try:
     payload = {'content': message, 'username': 'System Manager (ALERT)', 'avatar_url': 'https://cdn.discordapp.com/attachments/528698938530856961/829879589622120480/alerta.png'}
@@ -15,26 +30,25 @@ def send_notification(message):
   except:
     print('Error while send wenhook request')
 
-# Configurações
-discord_url_webhook='' # Insira o webhook do discord aqui para receber as notificações
-name='Node 01'
+def check_hd(hd_name, path):
+  hdd = psutil.disk_usage(path)
+  if (hdd.percent >= hdd_porcent_alert):
+    send_notification('@everyone **{0}** Ultrapassou {1}% de HD ({2}) {3}%'.format(name, hdd_porcent_alert, hd_name, hdd.percent))
 
-# Limites
-hdd_porcent_alert = 90
-ram_porcent_alert = 90
-load_alert = 20
+def check_ram():
+  ram = psutil.virtual_memory()
+  if (ram.percent >= ram_porcent_alert):
+    send_notification('@everyone **{0}** Ultrapassou {1}% de RAM {2}%'.format(name, ram_porcent_alert, ram.percent))
 
-# Alerta de hd
-hdd = psutil.disk_usage('/')
-if (hdd.percent >= hdd_porcent_alert):
-  send_notification('@everyone **{0}** Ultrapassou {1}% de HD {2}%'.format(name, hdd_porcent_alert, hdd.percent))
+def check_load():
+  load1, load5, load15 = os.getloadavg()
+  if (load1 >= load_alert):
+    send_notification('@everyone **{0}** Ultrapassou {1} de Load Average {2}'.format(name, load_alert, load1))
 
-# Alerta de memória ram
-ram = psutil.virtual_memory()
-if (ram.percent >= ram_porcent_alert):
-  send_notification('@everyone **{0}** Ultrapassou {1}% de RAM {2}%'.format(name, ram_porcent_alert, ram.percent))
+#executando funções
+for hd in hds:
+  check_hd(hd, hds[hd])
 
-# Alerta cpu load average
-load1, load5, load15 = os.getloadavg()
-if (load1 >= load_alert):
-  send_notification('@everyone **{0}** Ultrapassou {1} de Load Average {2}'.format(name, load_alert, load1))
+check_ram()
+
+check_load()
