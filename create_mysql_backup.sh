@@ -1,8 +1,13 @@
 #!/bin/bash
 
+# Script automático para fazer backups de banco de dados de forma organizada
+# O script pega todos os bancos de dados, cria um backup deles e compacta separadamente 
+# Deve ser usado como sistema secundário de backups apenas para redundância e não como backup principal
+
 DB_USERNAME='admin'
 DB_PASSOWRD='senha'
 DB_HOST='localhost'
+
 DAYS_ROTATE='5'
 BACKUPS_DIR='./mysql_backups'
 
