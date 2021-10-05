@@ -44,4 +44,4 @@ while read dbname; do
 	rm "$file_name"
 done
 
-find -type f -name '*.zip' -mtime +$DAYS_ROTATE -delete
+find $BACKUPS_DIR -type f -name '*.zip' -mtime +$DAYS_ROTATE -delete
