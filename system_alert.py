@@ -23,6 +23,7 @@ interfaces = {
 
 import requests
 import psutil
+import time
 import os
 
 #funções
