@@ -52,7 +52,12 @@ def check_load():
     send_notification('@everyone **{0}** Ultrapassou `{1}` de Load Average `{2}`'.format(name, load_alert, load1))
 
 def check_net_speed(interface, limit):
-  counters = psutil.net_io_counters(pernic=True)[interface]
+  counters = psutil.net_io_counters(pernic=True)
+  if not interface in counters:
+      send_notification('@everyone **{0}** Interface `{1}` não encontrada'.format(name, interface))
+      return
+    
+  counters=counters[interface]
   time.sleep(1)
   counters2 = psutil.net_io_counters(pernic=True)[interface]
   
