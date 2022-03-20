@@ -5,7 +5,7 @@
 # Esse script precisa ser executado toda vez que reiniciar a maquina, você pode colocar no /etc/rc.local para executar automaticamente ou usar o iptables-save
 
 ipv4=(
-  '127.0.0.1'
+	'127.0.0.1'
 	'103.21.244.0/22'
 	'103.22.200.0/22'
 	'103.31.4.0/22'
@@ -24,7 +24,7 @@ ipv4=(
 )
 
 ipv6=(
-  '::1'
+	'::1'
 	'2400:cb00::/32'
 	'2606:4700::/32'
 	'2803:f800::/32'
