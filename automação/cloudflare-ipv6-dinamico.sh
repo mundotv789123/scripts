@@ -10,7 +10,7 @@ sub_domain="subdom.exemplo.com" #dominio que receberá atualização do ip
 
 #arquivos
 ip=$(curl -s http://ipv6.icanhazip.com) #pegar ipv6 externamente
-#ip=$(ifconfig eth0 | grep "<global>" | cut -d " " -f 10 | head -1) #pegar ipv6 pelo driver de rede
+#ip=$(ip -6 addr list scope global $device | grep -v " fd" | sed -n 's/.*inet6 \([0-9a-f:]\+\).*/\1/p' | head -n 1) #pegar ipv6 pelo driver de rede
 idf="./domains-ids.txt"
 ipf="./ip-atual.txt"
 logf="./ip.log"
