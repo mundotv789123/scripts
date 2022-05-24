@@ -28,8 +28,8 @@ if [ -f $idf ] && [ $(wc -l $idf | cut -d " " -f 1) == "2" ]; then
     zid=$(head -1 $idf)
     rid=$(tail -1 $idf)
 else
-	zid=$(curl -s -X GET "https://api.cloudflare.com/client/v4/zones?name=$domain" -H "X-Auth-Email: $email" -H "X-Auth-Key: $key" -H "Content-Type: application/json" | grep -Po '(?<="id":")[^"]*' | head -1 )
-	rid=$(curl -s -X GET "https://api.cloudflare.com/client/v4/zones/$zid/dns_records?name=$sub_domain" -H "X-Auth-Email: $email" -H "X-Auth-Key: $key" -H "Content-Type: application/json"  | grep -Po '(?<="id":")[^"]*')
+    zid=$(curl -s -X GET "https://api.cloudflare.com/client/v4/zones?name=$domain" -H "X-Auth-Email: $email" -H "X-Auth-Key: $key" -H "Content-Type: application/json" | grep -Po '(?<="id":")[^"]*' | head -1)
+    rid=$(curl -s -X GET "https://api.cloudflare.com/client/v4/zones/$zid/dns_records?name=$sub_domain" -H "X-Auth-Email: $email" -H "X-Auth-Key: $key" -H "Content-Type: application/json"  | grep -Po '(?<="id":")[^"]*' | head -1)
     echo "$zid" > $idf
     echo "$rid" >> $idf
 fi
