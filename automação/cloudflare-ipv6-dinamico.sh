@@ -1,6 +1,6 @@
-#!/bin/bash
-DIR=`dirname $0`
-cd $DIR
+#!/bin/bash -e
+
+cd $(dirname "$0")
 
 #informações de conta cloudflare
 email="" 
