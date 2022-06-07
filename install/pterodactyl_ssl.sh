@@ -45,12 +45,26 @@ fi
 #gerando senhas
 pw_panel=$(pwgen -s 16 1)
 pw_database=$(pwgen -s 16 1)
+db_admin=$(pwgen -s 24 1)
+
+#salvando dados de acesso
+echo "
+url_painel: https://$domain
+usuário_painel: admin
+senha_painel: $pw_panel
+
+usuário_mysql: admin
+senha_mysql: $db_admin
+" > /root/pterodactyl_password.txt
 
 #configurando banco de dados
 mysql -u root <<!
 CREATE DATABASE panel;
 CREATE USER 'pterodactyl'@'localhost' IDENTIFIED BY '$pw_database';
 GRANT ALL PRIVILEGES ON panel.* to 'pterodactyl'@'localhost';
+
+CREATE USER 'admin'@'%' IDENTIFIED BY '$db_admin';
+GRANT ALL PRIVILEGES ON *.* TO `admin` WITH GRANT OPTION;
 !
 
 #instalando pterodactyl panel
@@ -67,7 +81,7 @@ composer -n install --no-dev --optimize-autoloader
 #configurando pterodactyl panel
 php artisan key:generate --force
 
-php artisan p:environment:setup -n --author=dane@pterodactyl.io --url=https://$domain --timezone=America/Sao_Paulo --cache=file --session=database
+php artisan p:environment:setup -n --author=dane@pterodactyl.io --url=https://$domain --timezone=America/Sao_Paulo --cache=redis --session=redis --redis-host=localhost --queue=redis --redis-pass='' --redis-port=6379
 php artisan p:environment:database -n --host=localhost --port=3306 --database=panel --username=pterodactyl --password=$pw_database 
 
 php artisan migrate --seed --force
@@ -100,6 +114,7 @@ WantedBy=multi-user.target
 " > /etc/systemd/system/pteroq.service
 
 sudo systemctl enable --now pteroq.service
+sudo systemctl enable --now redis-server
 
 #configurando nginx
 echo "
@@ -173,13 +188,6 @@ server {
 rm -v /etc/nginx/sites-enabled/default
 ln -s /etc/nginx/sites-available/pterodactyl /etc/nginx/sites-enabled/pterodactyl
 
-#salvando dados de acesso
-echo "
-url_painel: https://$domain
-usuário_painel: admin
-senha_painel: $pw_panel
-" > /root/pterodactyl_password.txt
-
 systemctl restart nginx
 
 #instalando phpmyadmin
@@ -192,6 +200,7 @@ if [ $phpm_confirm = 'y' ]; then
     mv -iv phpMyAdmin-5.1.1-all-languages phpmyadmin
     chown www-data:www-data -R phpmyadmin
     rm -v phpmyadmin.zip
+    echo "phpmyadmin: https://$domain/phpmyadmin" >> /root/pterodactyl_password.txt
 fi
 
 #instalando wings
