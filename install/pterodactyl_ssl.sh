@@ -23,7 +23,9 @@ done
 
 #instalando dependencias
 sudo apt update
-sudo apt -y install software-properties-common curl apt-transport-https ca-certificates gnupg
+sudo apt -y install software-properties-common curl apt-transport-https ca-certificates gnupg redis-server
+
+sudo systemctl start redis.service
 
 LC_ALL=C.UTF-8 add-apt-repository -y ppa:ondrej/php
 sudo apt-key adv --fetch-keys 'https://mariadb.org/mariadb_release_signing_key.asc'
@@ -51,6 +53,11 @@ mysql -u root <<!
 CREATE DATABASE panel;
 CREATE USER 'pterodactyl'@'localhost' IDENTIFIED BY '$pw_database';
 GRANT ALL PRIVILEGES ON panel.* to 'pterodactyl'@'localhost';
+!
+
+mysql -u root <<!
+CREATE USER 'pterodactyluser'@'%' IDENTIFIED BY '$pw_database';
+GRANT ALL PRIVILEGES ON *.* TO 'pterodactyluser'@'%' WITH GRANT OPTION;
 !
 
 #instalando pterodactyl panel
@@ -178,6 +185,8 @@ echo "
 url_painel: https://$domain
 usuário_painel: admin
 senha_painel: $pw_panel
+mysql_user: pterodactyluser
+senha_database: $pw_database
 " > /root/pterodactyl_password.txt
 
 systemctl restart nginx
