@@ -25,13 +25,15 @@ done
 sudo apt update
 sudo apt -y install software-properties-common curl apt-transport-https ca-certificates gnupg
 
+#adicionando repositorios
 LC_ALL=C.UTF-8 add-apt-repository -y ppa:ondrej/php
-sudo apt-key adv --fetch-keys 'https://mariadb.org/mariadb_release_signing_key.asc'
-sudo add-apt-repository -y 'deb [arch=amd64,arm64,ppc64el] https://mirror.ufro.cl/mariadb/repo/10.5/ubuntu bionic main'
+curl -sS https://downloads.mariadb.com/MariaDB/mariadb_repo_setup | sudo bash
+add-apt-repository ppa:redislabs/redis -y
 
+#instalando recursos
 sudo apt update
 sudo apt-get -y install php8.0 php8.0-cli php8.0-gd php8.0-mysql php8.0-pdo php8.0-mbstring php8.0-tokenizer php8.0-bcmath php8.0-xml php8.0-fpm php8.0-curl php8.0-zip
-sudo apt-get -y install mariadb-server nginx tar unzip git pwgen certbot python3-certbot-nginx
+sudo apt-get -y install mariadb-server nginx tar unzip git pwgen certbot python3-certbot-nginx redis-server
 
 curl -sS https://getcomposer.org/installer | sudo php -- --install-dir=/usr/local/bin --filename=composer
 
