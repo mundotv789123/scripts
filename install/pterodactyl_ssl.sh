@@ -67,7 +67,7 @@ CREATE USER 'pterodactyl'@'localhost' IDENTIFIED BY '$pw_database';
 GRANT ALL PRIVILEGES ON panel.* to 'pterodactyl'@'localhost';
 
 CREATE USER 'admin'@'%' IDENTIFIED BY '$db_admin';
-GRANT ALL PRIVILEGES ON *.* TO `admin` WITH GRANT OPTION;
+GRANT ALL PRIVILEGES ON *.* TO 'admin' WITH GRANT OPTION;
 !
 
 #instalando pterodactyl panel
