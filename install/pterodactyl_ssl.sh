@@ -212,7 +212,13 @@ curl -sSL https://get.docker.com/ | CHANNEL=stable bash
 systemctl enable --now docker
 
 mkdir -p /etc/pterodactyl
-curl -L -o /usr/local/bin/wings "https://github.com/pterodactyl/wings/releases/latest/download/wings_linux_$([[ "$(uname -m)" == "x86_64" ]] && echo "amd64" || echo "arm64")"
+
+if [ $(uname -m) == "x86_64" ]; then
+    curl -L -o /usr/local/bin/wings "https://github.com/pterodactyl/wings/releases/latest/download/wings_linux_amd64"
+else
+    curl -L -o /usr/local/bin/wings "https://github.com/pterodactyl/wings/releases/latest/download/wings_linux_arm64"
+fi
+
 chmod u+x /usr/local/bin/wings
 
 echo "
