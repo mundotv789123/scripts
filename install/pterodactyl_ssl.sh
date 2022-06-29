@@ -27,8 +27,6 @@ sudo apt -y install software-properties-common curl apt-transport-https ca-certi
 
 #adicionando repositorios
 LC_ALL=C.UTF-8 add-apt-repository -y ppa:ondrej/php
-sudo apt-key adv --fetch-keys 'https://mariadb.org/mariadb_release_signing_key.asc'
-sudo add-apt-repository -y 'deb [arch=amd64,arm64,ppc64el] https://mirror.ufro.cl/mariadb/repo/10.7/ubuntu bionic main'
 add-apt-repository ppa:redislabs/redis -y
 
 #instalando recursos
