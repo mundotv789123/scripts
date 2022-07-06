@@ -1,4 +1,4 @@
-#!/bin/sh -e
+#!/bin/bash -e
 
 #
 # Script simples de instalação do pterodactyl.io
@@ -7,12 +7,19 @@
 
 export DEBIAN_FRONTEND=noninteractive
 
+#verificando usuário root
+if [ "$EUID" -ne 0 ]; then 
+  echo "Entre com usuário root para executar esse script"
+  echo "Você pode executar \"sudo su\" e em seguida executar o script novamente!"
+  exit
+fi
+
 #pegando domínio
 confirm='n'
 while [ $confirm != "y" ]; do
     echo "Insira um dominio para a aplicação"
     read domain
-    if ( ping $domain -c1 > /dev/null ); then
+    if ( nslookup $domain -c1 > /dev/null ); then
         echo "O dominio: '$domain' está correto? (y/n)"
         read confirm
     else
@@ -21,28 +28,35 @@ while [ $confirm != "y" ]; do
     fi
 done
 
-#instalando dependencias
-sudo apt update
-sudo apt -y install software-properties-common curl apt-transport-https ca-certificates gnupg
+function install_libs {
+    #instalando dependencias
+    apt update
+    apt -y install software-properties-common curl apt-transport-https ca-certificates gnupg
 
-#adicionando repositorios
-LC_ALL=C.UTF-8 add-apt-repository -y ppa:ondrej/php
-add-apt-repository ppa:redislabs/redis -y
+    #adicionando repositorios
+    LC_ALL=C.UTF-8 add-apt-repository -y ppa:ondrej/php
+    add-apt-repository ppa:redislabs/redis -y
 
-#instalando recursos
-sudo apt update
-sudo apt-get -y install php8.0 php8.0-cli php8.0-gd php8.0-mysql php8.0-pdo php8.0-mbstring php8.0-tokenizer php8.0-bcmath php8.0-xml php8.0-fpm php8.0-curl php8.0-zip
-sudo apt-get -y install mariadb-server nginx tar unzip git pwgen certbot python3-certbot-nginx redis-server
+    #instalando recursos
+    apt update
+    apt-get -y install php8.1 php8.1-cli php8.1-gd php8.1-mysql php8.1-pdo php8.1-mbstring php8.1-tokenizer php8.1-bcmath php8.1-xml php8.1-fpm php8.1-curl php8.1-zip
+    apt-get -y install mariadb-server nginx tar unzip git pwgen certbot python3-certbot-nginx redis-server
 
-curl -sS https://getcomposer.org/installer | sudo php -- --install-dir=/usr/local/bin --filename=composer
+    curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/local/bin --filename=composer
+}
+
+install_libs
 
 #gerando certificado ssl
-echo "Gerar certificado ssl agora mesmo? (y/n)"
-read certificate_confirm
-if [ $certificate_confirm = 'y' ]; then
-    certbot certonly --nginx -d $domain
+if [ ! -f /etc/letsencrypt/live/$domain/fullchain.pem ]; then
+    echo "Gerar certificado ssl agora mesmo? (y/n)"
+    read certificate_confirm
+    if [ $certificate_confirm = 'y' ]; then
+        certbot certonly --nginx -d $domain
+    fi
 fi
 
+function generate_passwords {
 #gerando senhas
 pw_panel=$(pwgen -s 16 1)
 pw_database=$(pwgen -s 16 1)
@@ -59,16 +73,21 @@ senha_mysql: $db_admin
 " > /root/pterodactyl_password.txt
 
 #configurando banco de dados
-mysql -u root <<!
+mysql -u root <<EOF
 CREATE DATABASE panel;
-CREATE USER 'pterodactyl'@'localhost' IDENTIFIED BY '$pw_database';
+CREATE USER IF NOT EXISTS 'pterodactyl'@'localhost' IDENTIFIED BY '$pw_database';
 GRANT ALL PRIVILEGES ON panel.* to 'pterodactyl'@'localhost';
 
-CREATE USER 'admin'@'%' IDENTIFIED BY '$db_admin';
+CREATE USER IF NOT EXISTS 'admin'@'%' IDENTIFIED BY '$db_admin';
 GRANT ALL PRIVILEGES ON *.* TO 'admin' WITH GRANT OPTION;
-!
+EOF
+}
 
-#instalando pterodactyl panel
+if [ ! -f /root/pterodactyl_password.txt ]; then
+    generate_passwords
+fi
+
+function install_panel {
 mkdir -p /var/www/pterodactyl
 cd /var/www/pterodactyl
 
@@ -114,8 +133,9 @@ ExecStart=/usr/bin/php /var/www/pterodactyl/artisan queue:work --queue=high,stan
 WantedBy=multi-user.target
 " > /etc/systemd/system/pteroq.service
 
-sudo systemctl enable --now pteroq.service
-sudo systemctl enable --now redis-server
+systemctl enable --now pteroq.service
+systemctl enable --now redis-server
+
 
 #configurando nginx
 echo "
@@ -166,7 +186,7 @@ server {
 
     location ~ \\.php\$ {
         fastcgi_split_path_info ^(.+\\.php)(/.+)\$;
-        fastcgi_pass unix:/run/php/php8.0-fpm.sock;
+        fastcgi_pass unix:/run/php/php8.1-fpm.sock;
         fastcgi_index index.php;
         include fastcgi_params;
         fastcgi_param PHP_VALUE \"upload_max_filesize = 100M \\\n post_max_size=100M\";
@@ -190,21 +210,46 @@ rm -v /etc/nginx/sites-enabled/default
 ln -s /etc/nginx/sites-available/pterodactyl /etc/nginx/sites-enabled/pterodactyl
 
 systemctl restart nginx
+}
+
+#instalando pterodactyl panel
+if [ ! -d /var/www/pterodactyl ]; then
+    install_panel
+else
+    echo "O painel já está instalado! deseja atualiza-lo? (y/n)"
+    read update_confirm
+    if [ $update_confirm = 'y' ]; then
+        cd /var/www/pterodactyl
+        php artisan down
+        curl -L https://github.com/pterodactyl/panel/releases/latest/download/panel.tar.gz | tar -xzv
+        chmod -R 755 storage/* bootstrap/cache
+        composer install --no-dev --optimize-autoloader
+        php artisan view:clear
+        php artisan config:clear
+        php artisan migrate --seed --force
+        chown -R www-data:www-data /var/www/pterodactyl/*
+        php artisan queue:restart
+        php artisan up
+    fi
+fi
 
 #instalando phpmyadmin
-echo "Instalar o phpmyadmin v5.1.1? (y/n)"
-read phpm_confirm
-if [ $phpm_confirm = 'y' ]; then
-    cd /var/www/pterodactyl/public
-    curl -o phpmyadmin.zip https://files.phpmyadmin.net/phpMyAdmin/5.1.1/phpMyAdmin-5.1.1-all-languages.zip
-    unzip phpmyadmin.zip
-    mv -iv phpMyAdmin-5.1.1-all-languages phpmyadmin
-    chown www-data:www-data -R phpmyadmin
-    rm -v phpmyadmin.zip
-    echo "phpmyadmin: https://$domain/phpmyadmin" >> /root/pterodactyl_password.txt
+if [ ! -d /var/www/pterodactyl/public/phpmyadmin ]; then
+    echo "Instalar o phpmyadmin v5.1.1? (y/n)"
+    read phpm_confirm
+    if [ $phpm_confirm = 'y' ]; then
+        cd /var/www/pterodactyl/public
+        curl -o phpmyadmin.zip https://files.phpmyadmin.net/phpMyAdmin/5.1.1/phpMyAdmin-5.1.1-all-languages.zip
+        unzip phpmyadmin.zip
+        mv -iv phpMyAdmin-5.1.1-all-languages phpmyadmin
+        chown www-data:www-data -R phpmyadmin
+        rm -v phpmyadmin.zip
+        echo "phpmyadmin: https://$domain/phpmyadmin" >> /root/pterodactyl_password.txt
+    fi
 fi
 
 #instalando wings
+function install_wings {
 curl -sSL https://get.docker.com/ | CHANNEL=stable bash
 
 systemctl enable --now docker
@@ -240,3 +285,16 @@ WantedBy=multi-user.target
 " > /etc/systemd/system/wings.service
 
 systemctl enable wings
+}
+
+if [ ! -d /etc/pterodactyl ]; then
+    install_wings
+else
+    if [ $(uname -m) == "x86_64" ]; then
+        curl -L -o /usr/local/bin/wings "https://github.com/pterodactyl/wings/releases/latest/download/wings_linux_amd64"
+    else
+        curl -L -o /usr/local/bin/wings "https://github.com/pterodactyl/wings/releases/latest/download/wings_linux_arm64"
+    fi
+    chmod u+x /usr/local/bin/wings
+    systemctl restart wings
+fi
