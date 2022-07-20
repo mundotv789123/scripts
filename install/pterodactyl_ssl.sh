@@ -15,6 +15,7 @@ if [ "$EUID" -ne 0 ]; then
 fi
 
 #pegando domínio
+apt-get install -y dnsutils > /dev/null
 confirm='n'
 while [ $confirm != "y" ]; do
     echo "Insira um dominio para a aplicação"
