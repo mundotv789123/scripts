@@ -1,8 +1,21 @@
 #!/bin/bash -e
-
 #
-# Script simples de instalação do pterodactyl.io
-# Esse script não é 100% automático e precisa ser adaptado ao sistema usado!
+#  pterodactyl_ssl.sh - Instala e pré configura o painel pterodactyl em sua dedicada ou vps.
+#
+#  Autor   : mundotv789123 (Michael Fernandes)
+#  Site    : https://github.com/mundotv789123/scripts/blob/master/install/pterodactyl_ssl.sh
+# 
+#  Facilite a instalação do painel pterodactyl.io com esse script
+#  O script instala dependências, configira o servidor web nginx, baixa e instala o painel pterodactyl justamento com o node wings
+#  Ao executar o script ele pedirar um domínio válido apontado para a máquina onde está sendo executado
+#  Ele irá gerar um certificado ssl pelo certbot e a partir dai irá começar todo o processo de instalação
+#  O script foi testado no ubuntu 20.04 e 22.04 mas roda em outros sistema derivados
+#
+#  Bugs e erros que podem ocorrer:
+#
+#    1. Ao executar em uma máquina já configurara para hospedagem web o script pode intefirir no funcionamento do site
+#    2. Caso executado em uma máquina com o pterodactyl já instalado ele tentará evitar conflitos, mas isso não quer dizer que n possa acontecer
+#    3. O script pergunta se você deseja criar o certificado ssl, caso já tenha criado ou não deseja usar o certbot não confirmar a geração do certificado
 #
 
 export DEBIAN_FRONTEND=noninteractive
