@@ -126,99 +126,61 @@ chown -R www-data:www-data /var/www/pterodactyl/*
 
 echo "* * * * * root php /var/www/pterodactyl/artisan schedule:run >> /dev/null 2>&1" > /etc/crontab
 
-echo "
-# ----------------------------------
-# Pterodactyl Queue Worker File
-# ----------------------------------
-
-[Unit]
-Description=Pterodactyl Queue Worker
-After=redis-server.service
-
-[Service]
-# On some systems the user and group might be different.
-# Some systems use \`apache\` or \`nginx\` as the user and group.
-User=www-data
-Group=www-data
-Restart=always
-ExecStart=/usr/bin/php /var/www/pterodactyl/artisan queue:work --queue=high,standard,low --sleep=3 --tries=3
-
-[Install]
-WantedBy=multi-user.target
-" > /etc/systemd/system/pteroq.service
+echo "IyAtLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tCiMgUHRlcm9kYWN0eWwgUXVldWUg
+V29ya2VyIEZpbGUKIyAtLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tLS0tCgpbVW5pdF0K
+RGVzY3JpcHRpb249UHRlcm9kYWN0eWwgUXVldWUgV29ya2VyCkFmdGVyPXJlZGlzLXNlcnZlci5z
+ZXJ2aWNlCgpbU2VydmljZV0KIyBPbiBzb21lIHN5c3RlbXMgdGhlIHVzZXIgYW5kIGdyb3VwIG1p
+Z2h0IGJlIGRpZmZlcmVudC4KIyBTb21lIHN5c3RlbXMgdXNlIGBhcGFjaGVgIG9yIGBuZ2lueGAg
+YXMgdGhlIHVzZXIgYW5kIGdyb3VwLgpVc2VyPXd3dy1kYXRhCkdyb3VwPXd3dy1kYXRhClJlc3Rh
+cnQ9YWx3YXlzCkV4ZWNTdGFydD0vdXNyL2Jpbi9waHAgL3Zhci93d3cvcHRlcm9kYWN0eWwvYXJ0
+aXNhbiBxdWV1ZTp3b3JrIC0tcXVldWU9aGlnaCxzdGFuZGFyZCxsb3cgLS1zbGVlcD0zIC0tdHJp
+ZXM9MwoKW0luc3RhbGxdCldhbnRlZEJ5PW11bHRpLXVzZXIudGFyZ2V0Cgo=" \
+| base64 -d > /etc/systemd/system/pteroq.service
 
 systemctl enable --now pteroq.service
 systemctl enable --now redis-server
 
-
 #configurando nginx
-echo "
-server_tokens off;
-
-server {
-    listen 80;
-    server_name $domain;
-    return 301 https://\$server_name\$request_uri;
-}
-
-server {
-    listen 443 ssl http2;
-    server_name $domain;
-
-    root /var/www/pterodactyl/public;
-    index index.php;
-
-    access_log /var/log/nginx/pterodactyl.app-access.log;
-    error_log  /var/log/nginx/pterodactyl.app-error.log error;
-
-    # allow larger file uploads and longer script runtimes
-    client_max_body_size 100m;
-    client_body_timeout 120s;
-
-    sendfile off;
-
-    # SSL Configuration
-    ssl_certificate /etc/letsencrypt/live/$domain/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/$domain/privkey.pem;
-    ssl_session_cache shared:SSL:10m;
-    ssl_protocols TLSv1.2 TLSv1.3;
-    ssl_ciphers \"ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384\";
-    ssl_prefer_server_ciphers on;
-
-    # See https://hstspreload.org/ before uncommenting the line below.
-    # add_header Strict-Transport-Security \"max-age=15768000; preload;\";
-    add_header X-Content-Type-Options nosniff;
-    add_header X-XSS-Protection \"1; mode=block\";
-    add_header X-Robots-Tag none;
-    add_header Content-Security-Policy \"frame-ancestors 'self'\";
-    add_header X-Frame-Options DENY;
-    add_header Referrer-Policy same-origin;
-
-    location / {
-        try_files \$uri \$uri/ /index.php?\$query_string;
-    }
-
-    location ~ \\.php\$ {
-        fastcgi_split_path_info ^(.+\\.php)(/.+)\$;
-        fastcgi_pass unix:/run/php/php8.1-fpm.sock;
-        fastcgi_index index.php;
-        include fastcgi_params;
-        fastcgi_param PHP_VALUE \"upload_max_filesize = 100M \\n post_max_size=100M\";
-        fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;
-        fastcgi_param HTTP_PROXY \"\";
-        fastcgi_intercept_errors off;
-        fastcgi_buffer_size 16k;
-        fastcgi_buffers 4 16k;
-        fastcgi_connect_timeout 300;
-        fastcgi_send_timeout 300;
-        fastcgi_read_timeout 300;
-        include /etc/nginx/fastcgi_params;
-    }
-
-    location ~ /\\.ht {
-        deny all;
-    }
-}" > /etc/nginx/sites-available/pterodactyl
+echo "CnNlcnZlcl90b2tlbnMgb2ZmOwoKc2VydmVyIHsKICAgIGxpc3RlbiA4MDsKICAgIHNlcnZlcl9u
+YW1lIDxkb21haW4+OwogICAgcmV0dXJuIDMwMSBodHRwczovLyRzZXJ2ZXJfbmFtZSRyZXF1ZXN0
+X3VyaTsKfQoKc2VydmVyIHsKICAgIGxpc3RlbiA0NDMgc3NsIGh0dHAyOwogICAgc2VydmVyX25h
+bWUgPGRvbWFpbj47CgogICAgcm9vdCAvdmFyL3d3dy9wdGVyb2RhY3R5bC9wdWJsaWM7CiAgICBp
+bmRleCBpbmRleC5waHA7CgogICAgYWNjZXNzX2xvZyAvdmFyL2xvZy9uZ2lueC9wdGVyb2RhY3R5
+bC5hcHAtYWNjZXNzLmxvZzsKICAgIGVycm9yX2xvZyAgL3Zhci9sb2cvbmdpbngvcHRlcm9kYWN0
+eWwuYXBwLWVycm9yLmxvZyBlcnJvcjsKCiAgICAjIGFsbG93IGxhcmdlciBmaWxlIHVwbG9hZHMg
+YW5kIGxvbmdlciBzY3JpcHQgcnVudGltZXMKICAgIGNsaWVudF9tYXhfYm9keV9zaXplIDEwMG07
+CiAgICBjbGllbnRfYm9keV90aW1lb3V0IDEyMHM7CgogICAgc2VuZGZpbGUgb2ZmOwoKICAgICMg
+U1NMIENvbmZpZ3VyYXRpb24KICAgIHNzbF9jZXJ0aWZpY2F0ZSAvZXRjL2xldHNlbmNyeXB0L2xp
+dmUvPGRvbWFpbj4vZnVsbGNoYWluLnBlbTsKICAgIHNzbF9jZXJ0aWZpY2F0ZV9rZXkgL2V0Yy9s
+ZXRzZW5jcnlwdC9saXZlLzxkb21haW4+L3ByaXZrZXkucGVtOwogICAgc3NsX3Nlc3Npb25fY2Fj
+aGUgc2hhcmVkOlNTTDoxMG07CiAgICBzc2xfcHJvdG9jb2xzIFRMU3YxLjIgVExTdjEuMzsKICAg
+IHNzbF9jaXBoZXJzICJFQ0RIRS1FQ0RTQS1BRVMxMjgtR0NNLVNIQTI1NjpFQ0RIRS1SU0EtQUVT
+MTI4LUdDTS1TSEEyNTY6RUNESEUtRUNEU0EtQUVTMjU2LUdDTS1TSEEzODQ6RUNESEUtUlNBLUFF
+UzI1Ni1HQ00tU0hBMzg0OkVDREhFLUVDRFNBLUNIQUNIQTIwLVBPTFkxMzA1OkVDREhFLVJTQS1D
+SEFDSEEyMC1QT0xZMTMwNTpESEUtUlNBLUFFUzEyOC1HQ00tU0hBMjU2OkRIRS1SU0EtQUVTMjU2
+LUdDTS1TSEEzODQiOwogICAgc3NsX3ByZWZlcl9zZXJ2ZXJfY2lwaGVycyBvbjsKCiAgICAjIFNl
+ZSBodHRwczovL2hzdHNwcmVsb2FkLm9yZy8gYmVmb3JlIHVuY29tbWVudGluZyB0aGUgbGluZSBi
+ZWxvdy4KICAgICMgYWRkX2hlYWRlciBTdHJpY3QtVHJhbnNwb3J0LVNlY3VyaXR5ICJtYXgtYWdl
+PTE1NzY4MDAwOyBwcmVsb2FkOyI7CiAgICBhZGRfaGVhZGVyIFgtQ29udGVudC1UeXBlLU9wdGlv
+bnMgbm9zbmlmZjsKICAgIGFkZF9oZWFkZXIgWC1YU1MtUHJvdGVjdGlvbiAiMTsgbW9kZT1ibG9j
+ayI7CiAgICBhZGRfaGVhZGVyIFgtUm9ib3RzLVRhZyBub25lOwogICAgYWRkX2hlYWRlciBDb250
+ZW50LVNlY3VyaXR5LVBvbGljeSAiZnJhbWUtYW5jZXN0b3JzICdzZWxmJyI7CiAgICBhZGRfaGVh
+ZGVyIFgtRnJhbWUtT3B0aW9ucyBERU5ZOwogICAgYWRkX2hlYWRlciBSZWZlcnJlci1Qb2xpY3kg
+c2FtZS1vcmlnaW47CgogICAgbG9jYXRpb24gLyB7CiAgICAgICAgdHJ5X2ZpbGVzICR1cmkgJHVy
+aS8gL2luZGV4LnBocD8kcXVlcnlfc3RyaW5nOwogICAgfQoKICAgIGxvY2F0aW9uIH4gXC5waHAk
+IHsKICAgICAgICBmYXN0Y2dpX3NwbGl0X3BhdGhfaW5mbyBeKC4rXC5waHApKC8uKykkOwogICAg
+ICAgIGZhc3RjZ2lfcGFzcyB1bml4Oi9ydW4vcGhwL3BocDguMS1mcG0uc29jazsKICAgICAgICBm
+YXN0Y2dpX2luZGV4IGluZGV4LnBocDsKICAgICAgICBpbmNsdWRlIGZhc3RjZ2lfcGFyYW1zOwog
+ICAgICAgIGZhc3RjZ2lfcGFyYW0gUEhQX1ZBTFVFICJ1cGxvYWRfbWF4X2ZpbGVzaXplID0gMTAw
+TSBcbiBwb3N0X21heF9zaXplPTEwME0iOwogICAgICAgIGZhc3RjZ2lfcGFyYW0gU0NSSVBUX0ZJ
+TEVOQU1FICRkb2N1bWVudF9yb290JGZhc3RjZ2lfc2NyaXB0X25hbWU7CiAgICAgICAgZmFzdGNn
+aV9wYXJhbSBIVFRQX1BST1hZICIiOwogICAgICAgIGZhc3RjZ2lfaW50ZXJjZXB0X2Vycm9ycyBv
+ZmY7CiAgICAgICAgZmFzdGNnaV9idWZmZXJfc2l6ZSAxNms7CiAgICAgICAgZmFzdGNnaV9idWZm
+ZXJzIDQgMTZrOwogICAgICAgIGZhc3RjZ2lfY29ubmVjdF90aW1lb3V0IDMwMDsKICAgICAgICBm
+YXN0Y2dpX3NlbmRfdGltZW91dCAzMDA7CiAgICAgICAgZmFzdGNnaV9yZWFkX3RpbWVvdXQgMzAw
+OwogICAgICAgIGluY2x1ZGUgL2V0Yy9uZ2lueC9mYXN0Y2dpX3BhcmFtczsKICAgIH0KCiAgICBs
+b2NhdGlvbiB+IC9cLmh0IHsKICAgICAgICBkZW55IGFsbDsKICAgIH0KfQo=" \
+| base64 -d | sed -e "s/<domain>/${domain}/g" > /etc/nginx/sites-available/pterodactyl
 
 rm -v /etc/nginx/sites-enabled/default
 ln -s /etc/nginx/sites-available/pterodactyl /etc/nginx/sites-enabled/pterodactyl
@@ -278,25 +240,13 @@ fi
 
 chmod u+x /usr/local/bin/wings
 
-echo "
-[Unit]
-Description=Pterodactyl Wings Daemon
-After=docker.service
-Requires=docker.service
-PartOf=docker.service
-
-[Service]
-User=root
-WorkingDirectory=/etc/pterodactyl
-LimitNOFILE=4096
-PIDFile=/var/run/wings/daemon.pid
-ExecStart=/usr/local/bin/wings
-Restart=on-failure
-StartLimitInterval=600
-
-[Install]
-WantedBy=multi-user.target
-" > /etc/systemd/system/wings.service
+echo "W1VuaXRdCkRlc2NyaXB0aW9uPVB0ZXJvZGFjdHlsIFdpbmdzIERhZW1vbgpBZnRlcj1kb2NrZXIu
+c2VydmljZQpSZXF1aXJlcz1kb2NrZXIuc2VydmljZQpQYXJ0T2Y9ZG9ja2VyLnNlcnZpY2UKCltT
+ZXJ2aWNlXQpVc2VyPXJvb3QKV29ya2luZ0RpcmVjdG9yeT0vZXRjL3B0ZXJvZGFjdHlsCkxpbWl0
+Tk9GSUxFPTQwOTYKUElERmlsZT0vdmFyL3J1bi93aW5ncy9kYWVtb24ucGlkCkV4ZWNTdGFydD0v
+dXNyL2xvY2FsL2Jpbi93aW5ncwpSZXN0YXJ0PW9uLWZhaWx1cmUKU3RhcnRMaW1pdEludGVydmFs
+PTYwMAoKW0luc3RhbGxdCldhbnRlZEJ5PW11bHRpLXVzZXIudGFyZ2V0Cgo=" \
+| base64 -d > /etc/systemd/system/wings.service
 
 systemctl enable wings
 }
