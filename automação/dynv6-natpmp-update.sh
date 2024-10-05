@@ -25,7 +25,7 @@ external_address=`echo "$natpmp_result" | grep -E '^Public IP address : ([0-9\.]
 external_port=`echo "$natpmp_result" | grep -E '^Mapped public port ([0-9]+).*$' | tail -n 1 | sed -E "s/^Mapped public port ([0-9]+).*$/\1/g"`
 
 if [[ "$external_address" = "" || "$external_port" = "" ]]; then
-  echo "error: address or port coud not updated"
+  echo "error: address or port could not updated"
   exit 1
 fi
 
