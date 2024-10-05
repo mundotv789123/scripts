@@ -40,23 +40,28 @@ if [ -e $CACHE_FILE ]; then
 fi
 
 # update dns
+if [[ "$cache_external_address" != "$external_address" ]]; then
+  curl \
+    -d "{\"name\":\"$SUBDOMAIN\",\"data\":\"$external_address\"}" -X PATCH \
+    -H "Authorization: Bearer $API_KEY" \
+    -H "Accept: application/json" \
+    -H "Content-Type: application/json" \
+    "https://dynv6.com/api/v2/zones/$ZONE_ID/records/$RECORD_A_ID"
+  echo "address: $external_address updated"
+fi
 
-curl \
--d "{\"name\":\"$SUBDOMAIN\",\"data\":\"$external_address\"}" -X PATCH \
--H "Authorization: Bearer $API_KEY" \
--H "Accept: application/json" \
--H "Content-Type: application/json" \
-"https://dynv6.com/api/v2/zones/$ZONE_ID/records/$RECORD_A_ID"
-
-curl \
--d "{\"name\":\"$SRV_PROTOCOL.$SUBDOMAIN\",\"data\":\"$SUBDOMAIN\",\"priority\":10,\"weight\":0,\"port\":$external_port}" -X PATCH \
--H "Authorization: Bearer $API_KEY" \
--H "Accept: application/json" \
--H "Content-Type: application/json" \
-"https://dynv6.com/api/v2/zones/$ZONE_ID/records/$RECORD_SRV_ID"
+if [[ "$cache_external_port" != "$external_port" ]]; then
+  curl \
+    -d "{\"name\":\"$SRV_PROTOCOL.$SUBDOMAIN\",\"data\":\"$SUBDOMAIN\",\"priority\":10,\"weight\":0,\"port\":$external_port}" -X PATCH \
+    -H "Authorization: Bearer $API_KEY" \
+    -H "Accept: application/json" \
+    -H "Content-Type: application/json" \
+    "https://dynv6.com/api/v2/zones/$ZONE_ID/records/$RECORD_SRV_ID"
+  echo "port: $external_port updated"
+fi
 
 # save ache
 echo $external_address > $CACHE_FILE
 echo $external_port >> $CACHE_FILE
 
-echo "address: $external_address, port: $external_port updated"
+echo "success"
