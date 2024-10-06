@@ -9,13 +9,13 @@ RECORD_SRV_ID=''
 
 SUBDOMAIN=''
 
-PROTOCOL='tcp'
-SERVICE='ssh'
-SRV_PROTOCOL="_$SERVICE._$PROTOCOL"
-
-PORT=22
+PORT='22'
 NATPMP_GW='10.2.0.1'
 
+PROTOCOL='tcp'
+SERVICE='ssh'
+
+SRV_PROTOCOL="_$SERVICE._$PROTOCOL"
 CACHE_FILE="./dynv6_natpmp.txt"
 
 # request natpmp
