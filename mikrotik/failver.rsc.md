@@ -15,5 +15,5 @@ flowchart
   C3 -->|"Não"| C("Habilita modem")
   C3 -->|"Sim"| D("Beep curto")
   C2 ---->|"Sim"| C4{"Model habilitado?"}
-  C4 -->|"Sim"| E("Desativa moden") --> F("Dois beeps curtos agudos")
+  C4 -->|"Sim"| E("Desativa modem") --> F("Dois beeps curtos agudos")
 ```
