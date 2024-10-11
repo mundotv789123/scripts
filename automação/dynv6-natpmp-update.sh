@@ -60,7 +60,7 @@ if [[ "$cache_external_port" != "$external_port" ]]; then
   echo "port: $external_port updated"
 fi
 
-# save ache
+# save cache
 echo $external_address > $CACHE_FILE
 echo $external_port >> $CACHE_FILE
 
