@@ -24,7 +24,7 @@ for tf in $FILES; do
 	      mv $tf "${tf}.old"
 	      cat "${tf}.old" | while read line2; do
 	         lin=${line2/$1/$2};
-            lin=${lin/$3/$4};
+                 lin=${lin/$3/$4};
 	         lin=${lin/$5/$6};
 	         lin=${lin/$7/$8};
 	         echo $lin >> $tf
