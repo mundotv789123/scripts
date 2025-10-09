@@ -77,6 +77,12 @@ if [ "$SKIP_SSL" != 'true' ]; then
     fi
 fi
 
+if [ "$SKIP_SSL" == 'true' ]; then
+    PANEL_URL="http://$domain"
+else
+    PANEL_URL="https://$domain"
+fi
+
 function generate_passwords {
 # gerando senhas
 pw_panel=$(pwgen -s 16 1)
@@ -122,7 +128,8 @@ function install_panel {
     # configurando pterodactyl panel
     php artisan key:generate --force
 
-    php artisan p:environment:setup -n --author=dane@pterodactyl.io --url=https://$domain --timezone=America/Sao_Paulo --cache=redis --session=redis --redis-host=localhost --queue=redis --redis-pass='' --redis-port=6379
+    php artisan p:environment:setup -n --author=dane@pterodactyl.io --url=$PANEL_URL --timezone=America/Sao_Paulo --cache=redis --session=redis --redis-host=localhost --queue=redis --redis-pass='' --redis-port=6379
+    
     php artisan p:environment:database -n --host=localhost --port=3306 --database=panel --username=pterodactyl --password=$pw_database 
 
     php artisan migrate --seed --force
