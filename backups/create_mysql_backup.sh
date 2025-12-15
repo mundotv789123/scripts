@@ -6,7 +6,7 @@
 
 # config
 DB_USERNAME='admin'
-DB_PASSWORD='senha'
+DB_PASSWORD='password'
 DB_HOST='localhost'
 
 DAYS_ROTATE='5'
