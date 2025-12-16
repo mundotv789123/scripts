@@ -23,14 +23,29 @@ cur = con.cursor()
 
 # iniciando banco
 cur.execute(
-    """CREATE TABLE IF NOT EXISTS backups(
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    parent_id INTEGER,
-    path VARCHAR(512) NOT NULL,
-    created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY(parent_id) REFERENCES backups(id) ON DELETE CASCADE
-)"""
+    "CREATE TABLE IF NOT EXISTS migrations(name varchar(64) NOT NULL, executed_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP)"
 )
+
+migrations = {
+    "0001_init_db": """CREATE TABLE IF NOT EXISTS backups(
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        parent_id INTEGER,
+        path VARCHAR(512) NOT NULL,
+        created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY(parent_id) REFERENCES backups(id) ON DELETE CASCADE
+    )"""
+}
+
+res = cur.execute("SELECT * FROM migrations")
+executed_migrations = res.fetchall()
+
+for migration in migrations.keys():
+    if any(filter(lambda v: v["name"] == migration, executed_migrations)):
+        continue
+    cur.execute(migrations[migration])
+    cur.execute("INSERT INTO migrations (name) VALUES (?)", [migration])
+    con.commit()
+    print(f"migration: '{migration}' success")
 
 
 # manutenção
